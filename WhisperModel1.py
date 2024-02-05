@@ -6,9 +6,9 @@ from datasets import load_dataset, DatasetDict
 
 common_voice = DatasetDict()
 
-common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="train", trust_remote_code=True)
-common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="validation", trust_remote_code=True)
-common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="test", trust_remote_code=True)
+common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="train")
+common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="validation")
+common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="test")
 
 #downsample to match whisper sampling rate
 from datasets import Audio
