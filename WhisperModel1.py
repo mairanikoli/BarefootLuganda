@@ -11,9 +11,18 @@ common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_11_0"
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="test", trust_remote_code=True)
 
 #downsample to match whisper sampling rate
-from datasets import Audio
-print(common_voice['train'][0]['audio'])
-common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+#from datasets import Audio
+#common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+import librosa
+
+def resample_audio(record):
+    # Assuming record['audio'] is a path to the audio file
+    audio_data, _ = librosa.load(record['audio']['path'], sr=16000)  # Resample to 16000 Hz
+    record['audio']['array'] = audio_data
+    record['audio']['sampling_rate'] = 16000
+    return record
+
+common_voice = common_voice.map(resample_audio)
 
 def prepare_dataset(batch):
     # load and resample audio data from 48 to 16kHz
