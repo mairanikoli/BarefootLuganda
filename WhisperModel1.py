@@ -12,6 +12,7 @@ common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg"
 
 #downsample to match whisper sampling rate
 from datasets import Audio
+print(common_voice['train'][0]['audio'])
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 def prepare_dataset(batch):
