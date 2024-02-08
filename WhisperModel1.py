@@ -22,7 +22,7 @@ common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 #    record['audio']['sampling_rate'] = 16000
 #    return record
 
-common_voice = common_voice.map(resample_audio)
+#common_voice = common_voice.map(resample_audio)
 
 def prepare_dataset(batch):
     # load and resample audio data from 48 to 16kHz
