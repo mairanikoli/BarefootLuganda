@@ -10,7 +10,7 @@ common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_1", "lg
 common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_1", "lg", split="validation", trust_remote_code=True)
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_1", "lg", split="test", trust_remote_code=True)
 
-downsample to match whisper sampling rate
+#downsample to match whisper sampling rate
 from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 #import librosa
