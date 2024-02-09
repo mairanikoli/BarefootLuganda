@@ -70,9 +70,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
 #define a data collator
-from transformers import AutoProcessor
-processor = AutoProcessor.from_pretrained("model_checkpoint")
-
+#from transformers import AutoProcessor
+#processor = AutoProcessor.from_pretrained("model_checkpoint")
+from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+processor = Wav2Vec2Processor.from_pretrained("indonesian-nlp/wav2vec2-luganda")
 
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
