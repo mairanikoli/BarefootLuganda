@@ -6,9 +6,9 @@ from datasets import load_dataset, DatasetDict
 
 common_voice = DatasetDict()
 
-common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="train", trust_remote_code=True)
-common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="validation", trust_remote_code=True)
-common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "lg", split="test", trust_remote_code=True)
+common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="train", trust_remote_code=True)
+common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
+common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
 #downsample to match whisper sampling rate
 from datasets import Audio
@@ -70,6 +70,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
 #define a data collator
+from transformers import AutoProcessor
+processor = AutoProcessor.from_pretrained("model_checkpoint")
+
+
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
