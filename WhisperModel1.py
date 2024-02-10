@@ -10,24 +10,66 @@ common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg
 common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
+#from mp3 to wav
+from pydub import AudioSegment
+
+def convert_mp3_to_wav(mp3_file_path, wav_file_path):
+    audio = AudioSegment.from_mp3(mp3_file_path)
+    audio.export(wav_file_path, format="wav")
+
+
+#downsample to match whisper sampling rate
+#from datasets import Audio
+#common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+import librosa
+import os
+
+def resample_audio(record):
+    # load and resample audio data from 48 to 16kHz
+    audio_path = batch["audio"]["path"]
+    wav_path = audio_path.replace(".mp3", ".wav").replace("/mp3/", "/wav/")
+
+    if not os.path.exists(wav_path):
+        # Ensure the target directory exists
+        os.makedirs(os.path.dirname(wav_path), exist_ok=True)
+        # Convert MP3 to WAV
+        convert_mp3_to_wav(audio_path, wav_path)
+    
+    # Update the script to load the WAV file instead of the MP3 file
+    audio_data, sample_rate = sf.read(wav_path)
+    batch["audio"]["array"] = audio_data
+    batch["audio"]["sampling_rate"] = sample_rate
+    
+    # Assuming record['audio'] is a path to the audio file
+    audio_data, _ = librosa.load(record['audio']['path'], sr=16000)  # Resample to 16000 Hz
+    record['audio']['array'] = audio_data
+    record['audio']['sampling_rate'] = 16000
+    return record
+
+common_voice = common_voice.map(resample_audio)
+
+def prepare_dataset(batch):
+    # compute log-Mel input features from input audio array 
+    from transformers import WhisperFeatureExtractor
+    feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
+
+    from transformers import WhisperTokenizer
+    #I have chosen Swahili in the same family as Luganda
+    tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
+
+    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+
+    # encode target text to label ids 
+    batch["labels"] = tokenizer(batch["sentence"]).input_ids
+    return batch
+    
+common_voice = common_voice.map(prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=4)
+
 #downsample to match whisper sampling rate
 from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
-#import librosa
-
-#def resample_audio(record):
-    # Assuming record['audio'] is a path to the audio file
-#    audio_data, _ = librosa.load(record['audio']['path'], sr=16000)  # Resample to 16000 Hz
-#    record['audio']['array'] = audio_data
-#    record['audio']['sampling_rate'] = 16000
-#    return record
-
-#common_voice = common_voice.map(resample_audio)
 
 def prepare_dataset_general(batch):
-    # load and resample audio data from 48 to 16kHz
-    audio = batch["audio"]
-
     # compute log-Mel input features from input audio array 
     from transformers import WhisperFeatureExtractor
     feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
@@ -70,11 +112,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
 #define a data collator
-#from transformers import AutoProcessor
-#processor = AutoProcessor.from_pretrained("model_checkpoint")
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
-processor = Wav2Vec2Processor.from_pretrained("indonesian-nlp/wav2vec2-luganda")
-
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
