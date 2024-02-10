@@ -43,10 +43,10 @@ def resample_audio(batch):
     batch["audio"]["sampling_rate"] = sample_rate
     
     # Assuming record['audio'] is a path to the audio file
-    audio_data, _ = librosa.load(record['audio']['path'], sr=16000)  # Resample to 16000 Hz
-    record['audio']['array'] = audio_data
-    record['audio']['sampling_rate'] = 16000
-    return record
+    audio_data, _ = librosa.load(batch['audio']['path'], sr=16000)  # Resample to 16000 Hz
+    batch['audio']['array'] = audio_data
+    batch['audio']['sampling_rate'] = 16000
+    return batch
 
 common_voice = common_voice.map(resample_audio)
 
