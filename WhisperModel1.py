@@ -24,7 +24,7 @@ def convert_mp3_to_wav(mp3_file_path, wav_file_path):
 import librosa
 import os
 
-def resample_audio(record):
+def resample_audio(batch):
     # load and resample audio data from 48 to 16kHz
     audio_path = batch["audio"]["path"]
     wav_path = audio_path.replace(".mp3", ".wav").replace("/mp3/", "/wav/")
