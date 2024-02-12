@@ -34,7 +34,7 @@ def convert_mp3_to_wav(batch):
     return batch
 
 
-common_voice = common_voice.map(convert_mp3_to_wav, batched=True, num_proc=4)
+common_voice = common_voice.map(convert_mp3_to_wav, batched=True)
 
 
 #downsample to match whisper sampling rate
