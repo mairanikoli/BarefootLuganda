@@ -69,7 +69,7 @@ def resample_audio(batch):
 
 common_voice = common_voice.map(resample_audio)
 
-def prepare_dataset(batch):
+def prepare_dataset_general(batch):
     # compute log-Mel input features from input audio array 
     from transformers import WhisperFeatureExtractor
     feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
