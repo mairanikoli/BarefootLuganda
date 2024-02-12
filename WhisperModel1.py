@@ -25,17 +25,18 @@ import librosa
 import os
 import soundfile as sf
 
+audio_data, sample_rate = librosa.load("path/to/your/file.mp3", sr=None)  # `sr=None` to preserve original sample rate
 
 def resample_audio(batch):
     # load and resample audio data from 48 to 16kHz
-    audio_path = batch["audio"]["path"]
-    wav_path = audio_path.replace(".mp3", ".wav").replace("/mp3/", "/wav/")
-
-    if not os.path.exists(wav_path):
-        # Ensure the target directory exists
-        os.makedirs(os.path.dirname(wav_path), exist_ok=True)
-        # Convert MP3 to WAV
-        convert_mp3_to_wav(audio_path, wav_path)
+  #  audio_path = batch["audio"]["path"]
+   # wav_path = audio_path.replace(".mp3", ".wav").replace("/mp3/", "/wav/")
+#
+ #   if not os.path.exists(wav_path):
+  #      # Ensure the target directory exists
+   #     os.makedirs(os.path.dirname(wav_path), exist_ok=True)
+    #    # Convert MP3 to WAV
+     #   convert_mp3_to_wav(audio_path, wav_path)
     
     # Update the script to load the WAV file instead of the MP3 file
     audio_data, sample_rate = sf.read(wav_path)
