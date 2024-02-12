@@ -12,17 +12,35 @@ common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg"
 
 #from mp3 to wav
 from pydub import AudioSegment
+import os
 
-def convert_mp3_to_wav(mp3_file_path, wav_file_path):
-    audio = AudioSegment.from_mp3(mp3_file_path)
-    audio.export(wav_file_path, format="wav")
+def convert_mp3_to_wav(batch):
+    """Converts MP3 files to WAV format for a batch of data."""
+    audio_paths = batch['path']  # Assuming 'path' contains the MP3 file paths
+    wav_paths = []  # To store the new WAV file paths
+
+    for audio_path in audio_paths:
+        # Define the output WAV path by changing the file extension
+        wav_path = audio_path.replace(".mp3", ".wav")
+        
+        # Convert MP3 to WAV
+        audio = AudioSegment.from_mp3(audio_path)
+        audio.export(wav_path, format="wav")
+        
+        wav_paths.append(wav_path)
+    
+    # Update the batch to include the new WAV paths
+    batch['wav_path'] = wav_paths
+    return batch
+
+
+common_voice = common_voice.map(convert_mp3_to_wav, batched=True, num_proc=4)
 
 
 #downsample to match whisper sampling rate
 #from datasets import Audio
 #common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 import librosa
-import os
 import soundfile as sf
 
 audio_data, sample_rate = librosa.load("path/to/your/file.mp3", sr=None)  # `sr=None` to preserve original sample rate
