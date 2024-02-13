@@ -16,13 +16,11 @@ from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 import librosa
-import soundfile as sf
-
 
 def prepare_dataset_general(batch):
 
     # load and resample audio data from 48 to 16kHz
-    audio = batch["audio"]
+    audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
 
     # compute log-Mel input features from input audio array 
     from transformers import WhisperFeatureExtractor
