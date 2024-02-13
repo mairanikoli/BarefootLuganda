@@ -2,6 +2,8 @@ from huggingface_hub import notebook_login
 notebook_login()
 
 import datasets
+import librosa
+
 from datasets import load_dataset, DatasetDict
 
 common_voice = DatasetDict()
@@ -12,11 +14,24 @@ common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg"
 
 common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes"])
 
+from transformers import WhisperFeatureExtractor
+feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
+
+
+from transformers import WhisperProcessor
+processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
+processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
+
+
 #downsample to match whisper sampling rate
 from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
-import librosa
+
+from transformers import WhisperTokenizer
+tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
+tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
+
 
 def prepare_dataset_general(batch):
 
@@ -24,17 +39,10 @@ def prepare_dataset_general(batch):
     audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
 
     # compute log-Mel input features from input audio array 
-    from transformers import WhisperFeatureExtractor
-    feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
-
-    from transformers import WhisperTokenizer
-    #I have chosen Swahili in the same family as Luganda
-    tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
-
     batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
-
+    
     # encode target text to label ids 
-    batch["labels"] = tokenizer(batch["sentence"]).input_ids
+    batch["labels"] = tokenizer_general(batch["sentence"]).input_ids
     return batch
     
 common_voice = common_voice.map(prepare_dataset_general, remove_columns=common_voice.column_names["train"], num_proc=4)
@@ -43,14 +51,7 @@ common_voice = common_voice.map(prepare_dataset_general, remove_columns=common_v
 def prepare_dataset_swahili(batch):
     # load and resample audio data from 48 to 16kHz
     audio = batch["audio"]
-
-    # compute log-Mel input features from input audio array 
-    from transformers import WhisperFeatureExtractor
-    feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
-
-    from transformers import WhisperTokenizer
-    #tokenizer in swahili
-    tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
+    
 
     # Your existing preprocessing logic
     audio = batch["audio"]
@@ -61,12 +62,7 @@ def prepare_dataset_swahili(batch):
 common_voice_swahili = common_voice.map(prepare_dataset_swahili, remove_columns=common_voice.column_names["train"])
 
 import torch
-from transformers import WhisperProcessor
 
-processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
-processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
-
-from transformers import WhisperProcessor
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
@@ -98,8 +94,8 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 
         return batch
 
-data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
-
+data_collator_general = DataCollatorSpeechSeq2SeqWithPadding(processor=processor_general)
+data_collator_swahili = DataCollatorSpeechSeq2SeqWithPadding(processor=processor_swahili)
 #evalution metricswer and wil
 import evaluate
 metric = evaluate.load("wer")
@@ -163,7 +159,7 @@ trainer_general = Seq2SeqTrainer(
     model=model,
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
-    data_collator=data_collator,
+    data_collator=data_collator_general,
     compute_metrics=compute_metrics,
     tokenizer=processor.feature_extractor,
 )
@@ -176,7 +172,7 @@ trainer_swahili = Seq2SeqTrainer(
     model=model,
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
-    data_collator=data_collator,
+    data_collator=data_collator_swahili,
     compute_metrics=compute_metrics,
     tokenizer=processor.feature_extractor,
 )
