@@ -39,7 +39,7 @@ def prepare_dataset_general(batch):
     audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
 
     # compute log-Mel input features from input audio array 
-    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+    batch["input_features"] = feature_extractor(audio, sampling_rate=sr).input_features[0]
     
     # encode target text to label ids 
     batch["labels"] = tokenizer_general(batch["sentence"]).input_ids
@@ -50,12 +50,11 @@ common_voice = common_voice.map(prepare_dataset_general, remove_columns=common_v
 
 def prepare_dataset_swahili(batch):
     # load and resample audio data from 48 to 16kHz
-    audio = batch["audio"]
+    audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
     
-
     # Your existing preprocessing logic
-    audio = batch["audio"]
-    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+
+    batch["input_features"] = feature_extractor(audio, sampling_rate=sr).input_features[0]
     batch["labels"] = tokenizer_swahili(batch["sentence"]).input_ids
     return batch
 
