@@ -10,6 +10,7 @@ common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg
 common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
+common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes"])
 
 #downsample to match whisper sampling rate
 from datasets import Audio
@@ -60,7 +61,12 @@ def prepare_dataset_swahili(batch):
 common_voice_swahili = common_voice.map(prepare_dataset_swahili, remove_columns=common_voice.column_names["train"])
 
 import torch
+from transformers import WhisperProcessor
 
+processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
+processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
+
+from transformers import WhisperProcessor
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
