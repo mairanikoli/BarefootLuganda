@@ -76,7 +76,7 @@ for item in common_voice:
     safe_process(common_voice["audio"]["path"])
 
 # Now, filter out the problematic files from your dataset
-dataset = [item for item in common_voice if common_voice["audio"]["path"] not in problematic_files]
+common_voice = [item for item in common_voice if common_voice["audio"]["path"] not in problematic_files]
 
 
 def prepare_dataset_general(batch):
