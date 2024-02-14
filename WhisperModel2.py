@@ -69,7 +69,7 @@ def is_corrupt_mp3(file_path):
         return True  # If an error occurs, file is likely corrupt
 
 # Path to your dataset directory
-dataset_dir = common_voice["audio"]["path"]
+dataset_dir = common_voice.data_files
 
 # Iterate over all MP3 files in the dataset directory
 for file_name in os.listdir(dataset_dir):
