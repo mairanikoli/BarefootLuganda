@@ -32,6 +32,31 @@ from transformers import WhisperTokenizer
 tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
 tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
 
+from pydub import AudioSegment
+import librosa
+import numpy as np
+import os
+
+def convert_and_resample(batch):
+    audio_path = batch["audio"]["path"]
+    audio = AudioSegment.from_mp3(audio_path)
+    # Export as WAV
+    wav_path = audio_path.replace(".mp3", ".wav")
+    audio.export(wav_path, format="wav")
+    
+    # Optionally resample and load with librosa
+    y, sr = librosa.load(wav_path, sr=16000)  # Resampling to 16 kHz
+    os.remove(wav_path)  # Optionally remove the WAV file after processing
+    
+    # Update the batch (this part depends on how you want to structure your data)
+    batch["audio"] = {
+        "array": np.array(y, dtype=np.float32),
+        "sampling_rate": sr
+    }
+    return batch
+
+common_voice = common_voice.map(convert_and_resample, batched=True)
+
 
 def prepare_dataset_general(batch):
 
