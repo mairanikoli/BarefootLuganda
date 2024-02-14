@@ -56,29 +56,27 @@ import os
     #return batch
 
 #common_voice = common_voice.map(convert_and_resample)
-from pydub import AudioSegment
-import os
 
-def is_corrupt_mp3(file_path):
-    try:
-        # Attempt to load the MP3 file
-        audio = AudioSegment.from_mp3(file_path)
-        return False  # If successful, file is not corrupt
-    except Exception as e:
-        print(f"Error processing {file_path}: {e}")
-        return True  # If an error occurs, file is likely corrupt
+problematic_files = []
 
-# Path to your dataset directory
-dataset_dir = common_voice.data_files
+def safe_process(file_paths):
+    for file_path in file_paths:
+        try:
+            # Assuming file_paths contains MP3 files you want to convert
+            wav_path = file_path.replace(".mp3", ".wav")
+            audio = AudioSegment.from_mp3(file_path)
+            audio.export(wav_path, format="wav")
+            # Further processing here
+        except Exception as e:
+            problematic_files.append(file_path)
+            print(f"Problem processing file {file_path}: {e}")
+            return None  # or appropriate failure indication
 
-# Iterate over all MP3 files in the dataset directory
-for file_name in os.listdir(dataset_dir):
-    file_path = os.path.join(dataset_dir, file_name)
-    if file_path.endswith(".mp3"):
-        if is_corrupt_mp3(file_path):
-            print(f"Skipping corrupt MP3 file: {file_name}")
-            # Here you can decide to delete the file, move it, or simply skip it
-            # os.remove(file_path)  # Uncomment to delete the file
+for item in common_voice:
+    safe_process(common_voice["audio"]["path"])
+
+# Now, filter out the problematic files from your dataset
+dataset = [item for item in common_voice if common_voice["audio"]["path"] not in problematic_files]
 
 
 def prepare_dataset_general(batch):
