@@ -37,25 +37,48 @@ import librosa
 import numpy as np
 import os
 
-def convert_and_resample(batch):
-    audio_path = batch["audio"]["path"]
-    audio = AudioSegment.from_mp3(audio_path)
+#def convert_and_resample(batch):
+#    audio_path = batch["audio"]["path"]
+ #   audio = AudioSegment.from_mp3(audio_path)
     # Export as WAV
-    wav_path = audio_path.replace(".mp3", ".wav")
-    audio.export(wav_path, format="wav")
+  #  wav_path = audio_path.replace(".mp3", ".wav")
+   # audio.export(wav_path, format="wav")
     
     # Optionally resample and load with librosa
-    y, sr = librosa.load(wav_path, sr=16000)  # Resampling to 16 kHz
-    os.remove(wav_path)  # Optionally remove the WAV file after processing
+    #y, sr = librosa.load(wav_path, sr=16000)  # Resampling to 16 kHz
+    #os.remove(wav_path)  # Optionally remove the WAV file after processing
     
     # Update the batch (this part depends on how you want to structure your data)
-    batch["audio"] = {
-        "array": np.array(y, dtype=np.float32),
-        "sampling_rate": sr
-    }
-    return batch
+ #   batch["audio"] = {
+  #      "array": np.array(y, dtype=np.float32),
+   #     "sampling_rate": sr
+   # }
+    #return batch
 
-common_voice = common_voice.map(convert_and_resample)
+#common_voice = common_voice.map(convert_and_resample)
+from pydub import AudioSegment
+import os
+
+def is_corrupt_mp3(file_path):
+    try:
+        # Attempt to load the MP3 file
+        audio = AudioSegment.from_mp3(file_path)
+        return False  # If successful, file is not corrupt
+    except Exception as e:
+        print(f"Error processing {file_path}: {e}")
+        return True  # If an error occurs, file is likely corrupt
+
+# Path to your dataset directory
+dataset_dir = common_voice["path"]
+
+# Iterate over all MP3 files in the dataset directory
+for file_name in os.listdir(dataset_dir):
+    file_path = os.path.join(dataset_dir, file_name)
+    if file_path.endswith(".mp3"):
+        if is_corrupt_mp3(file_path):
+            print(f"Skipping corrupt MP3 file: {file_name}")
+            # Here you can decide to delete the file, move it, or simply skip it
+            # os.remove(file_path)  # Uncomment to delete the file
 
 
 def prepare_dataset_general(batch):
