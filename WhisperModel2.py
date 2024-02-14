@@ -55,7 +55,7 @@ def convert_and_resample(batch):
     }
     return batch
 
-common_voice = common_voice.map(convert_and_resample, batched=True)
+common_voice = common_voice.map(convert_and_resample)
 
 
 def prepare_dataset_general(batch):
