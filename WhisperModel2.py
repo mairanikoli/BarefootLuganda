@@ -8,9 +8,9 @@ from datasets import load_dataset, DatasetDict
 
 common_voice = DatasetDict()
 
-common_voice["train"] = load_dataset("mozilla-foundation/common_voice_15_0", "lg", split="train", trust_remote_code=True)
-common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_15_0", "lg", split="validation", trust_remote_code=True)
-common_voice["test"] = load_dataset("mozilla-foundation/common_voice_15_0", "lg", split="test", trust_remote_code=True)
+common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="train", trust_remote_code=True)
+common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
+common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
 common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
 
@@ -37,46 +37,46 @@ import librosa
 import numpy as np
 import os
 
-def convert_and_resample(batch):
-    audio_path = batch["audio"]["path"]
-    audio = AudioSegment.from_mp3(audio_path)
-    # Export as WAV
-    wav_path = audio_path.replace(".mp3", ".wav")
-    audio.export(wav_path, format="wav")
+#def convert_and_resample(batch):
+#    audio_path = batch["audio"]["path"]
+ #   audio = AudioSegment.from_mp3(audio_path)
+  #  # Export as WAV
+   # wav_path = audio_path.replace(".mp3", ".wav")
+    #audio.export(wav_path, format="wav")
     
-    # Optionally resample and load with librosa
-    y, sr = librosa.load(wav_path, sr=16000)  # Resampling to 16 kHz
-    os.remove(wav_path)  # Optionally remove the WAV file after processing
+    ## Optionally resample and load with librosa
+#    y, sr = librosa.load(wav_path, sr=16000)  # Resampling to 16 kHz
+ #   os.remove(wav_path)  # Optionally remove the WAV file after processing
     
-    # Update the batch (this part depends on how you want to structure your data)
-    batch["audio"] = {
-        "array": np.array(y, dtype=np.float32),
-        "sampling_rate": sr
-    }
-    return batch
+  #  # Update the batch (this part depends on how you want to structure your data)
+   # batch["audio"] = {
+    #    "array": np.array(y, dtype=np.float32),
+     #   "sampling_rate": sr
+   # }
+    #return batch
 
-common_voice = common_voice.map(convert_and_resample)
+#common_voice = common_voice.map(convert_and_resample)
 
-#problematic_files = []
+problematic_files = []
 
-#def safe_process(file_paths):
- #   for file_path in file_paths:
-  #      try:
+def safe_process(file_paths):
+    for file_path in file_paths:
+        try:
             # Assuming file_paths contains MP3 files you want to convert
-   #         wav_path = file_path.replace(".mp3", ".wav")
-    #        audio = AudioSegment.from_mp3(file_path)
-     #       audio.export(wav_path, format="wav")
+            wav_path = file_path.replace(".mp3", ".wav")
+            audio = AudioSegment.from_mp3(file_path)
+            audio.export(wav_path, format="wav")
             # Further processing here
-      #  except Exception as e:
-       #     problematic_files.append(file_path)
-        #    print(f"Problem processing file {file_path}: {e}")
-         #   return None  # or appropriate failure indication
+        except Exception as e:
+            problematic_files.append(file_path)
+            print(f"Problem processing file {file_path}: {e}")
+            return None  # or appropriate failure indication
 
-#for item in common_voice:
- #   safe_process(item["path"])
+for item in common_voice:
+    safe_process(item["path"])
 
 # Now, filter out the problematic files from your dataset
-#common_voice = [item for item in common_voice if item["file_path"] not in problematic_files]
+common_voice = [item for item in common_voice if item["file_path"] not in problematic_files]
 
 
 def prepare_dataset_general(batch):
