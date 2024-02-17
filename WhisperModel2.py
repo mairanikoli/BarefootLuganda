@@ -64,7 +64,7 @@ dataset_with_local_paths = common_voice.map(lambda examples: {"local_path": get_
 # Example of printing the local paths for the first three datapoints
 for idx, example in enumerate(dataset_with_local_paths["train"][:3]):
     print(f"Local Path {idx}: {example['local_path']}")
-In this example, the get_local_path function takes an example and the key of the feature (i.e., "audio"), returning the absolute path of the local audio file. The map function applies the get_local_path function to each element in the dataset, generating a new column called "local_path". Lastly, the example prints the local paths for the first three datapoints in the dataset.
+#In this example, the get_local_path function takes an example and the key of the feature (i.e., "audio"), returning the absolute path of the local audio file. The map function applies the get_local_path function to each element in the dataset, generating a new column called "local_path". Lastly, the example prints the local paths for the first three datapoints in the dataset.
 
 
 
