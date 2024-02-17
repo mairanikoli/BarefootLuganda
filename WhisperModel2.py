@@ -12,30 +12,62 @@ common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg
 common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
-common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
+common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender","path", "locale", "segment", "up_votes"])
 
 from transformers import WhisperFeatureExtractor
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 
+from transformers import WhisperTokenizer
+tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
+tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
+
+input_str = common_voice["train"][0]["sentence"]
+labels = tokenizer_general(input_str).input_ids
+decoded_with_special = tokenizer_general.decode(labels, skip_special_tokens=False)
+decoded_str = tokenizer_general.decode(labels, skip_special_tokens=True)
+print(f"Input:                 {input_str}")
+print(f"Decoded w/ special:    {decoded_with_special}")
+print(f"Decoded w/out special: {decoded_str}")
+print(f"Are equal:             {input_str == decoded_str}")
+
+input_str = common_voice["train"][0]["sentence"]
+labels = tokenizer_swahili(input_str).input_ids
+decoded_with_special = tokenizer_swahili.decode(labels, skip_special_tokens=False)
+decoded_str = tokenizer_swahili.decode(labels, skip_special_tokens=True)
+print(f"Input:                 {input_str}")
+print(f"Decoded w/ special:    {decoded_with_special}")
+print(f"Decoded w/out special: {decoded_str}")
+print(f"Are equal:             {input_str == decoded_str}")
 
 from transformers import WhisperProcessor
 processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
 processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
-
 
 #downsample to match whisper sampling rate
 from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 
-from transformers import WhisperTokenizer
-tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
-tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
 
 from pydub import AudioSegment
 import librosa
 import numpy as np
 import os
+
+# Function to get the local path of a datapoint
+def get_local_path(example, key):
+    return os.path.abspath(example[key].source)
+
+# Apply the function to each element in the dataset
+dataset_with_local_paths = common_voice.map(lambda examples: {"local_path": get_local_path(examples, "audio")}, batched=False, batch_size=-1)
+
+# Example of printing the local paths for the first three datapoints
+for idx, example in enumerate(dataset_with_local_paths["train"][:3]):
+    print(f"Local Path {idx}: {example['local_path']}")
+In this example, the get_local_path function takes an example and the key of the feature (i.e., "audio"), returning the absolute path of the local audio file. The map function applies the get_local_path function to each element in the dataset, generating a new column called "local_path". Lastly, the example prints the local paths for the first three datapoints in the dataset.
+
+
+
 
 #def convert_and_resample(batch):
 #    audio_path = batch["audio"]["path"]
