@@ -21,24 +21,6 @@ from transformers import WhisperTokenizer
 tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
 tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
 
-input_str = common_voice["train"][0]["sentence"]
-labels = tokenizer_general(input_str).input_ids
-decoded_with_special = tokenizer_general.decode(labels, skip_special_tokens=False)
-decoded_str = tokenizer_general.decode(labels, skip_special_tokens=True)
-print(f"Input:                 {input_str}")
-print(f"Decoded w/ special:    {decoded_with_special}")
-print(f"Decoded w/out special: {decoded_str}")
-print(f"Are equal:             {input_str == decoded_str}")
-
-input_str = common_voice["train"][0]["sentence"]
-labels = tokenizer_swahili(input_str).input_ids
-decoded_with_special = tokenizer_swahili.decode(labels, skip_special_tokens=False)
-decoded_str = tokenizer_swahili.decode(labels, skip_special_tokens=True)
-print(f"Input:                 {input_str}")
-print(f"Decoded w/ special:    {decoded_with_special}")
-print(f"Decoded w/out special: {decoded_str}")
-print(f"Are equal:             {input_str == decoded_str}")
-
 from transformers import WhisperProcessor
 processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
 processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
@@ -48,22 +30,21 @@ from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 
-
 from pydub import AudioSegment
 import librosa
 import numpy as np
 import os
 
 # Function to get the local path of a datapoint
-def get_local_path(example, key):
-    return os.path.abspath(example[key].source)
+#def get_local_path(example, key):
+ #   return os.path.abspath(example[key].source)
 
 # Apply the function to each element in the dataset
-dataset_with_local_paths = common_voice.map(lambda examples: {"local_path": get_local_path(examples, "audio")}, batched=False, batch_size=-1)
+#dataset_with_local_paths = common_voice.map(lambda examples: {"local_path": get_local_path(examples, "audio")})
 
 # Example of printing the local paths for the first three datapoints
-for idx, example in enumerate(dataset_with_local_paths["train"][:3]):
-    print(f"Local Path {idx}: {example['local_path']}")
+#for idx, example in enumerate(dataset_with_local_paths["train"][:3]):
+ #   print(f"Local Path {idx}: {example['local_path']}")
 #In this example, the get_local_path function takes an example and the key of the feature (i.e., "audio"), returning the absolute path of the local audio file. The map function applies the get_local_path function to each element in the dataset, generating a new column called "local_path". Lastly, the example prints the local paths for the first three datapoints in the dataset.
 
 
@@ -89,35 +70,35 @@ for idx, example in enumerate(dataset_with_local_paths["train"][:3]):
 
 #common_voice = common_voice.map(convert_and_resample)
 
-problematic_files = []
+#problematic_files = []
 
-def safe_process(file_paths):
-    for file_path in file_paths:
-        try:
-            # Assuming file_paths contains MP3 files you want to convert
-            wav_path = file_path.replace(".mp3", ".wav")
-            audio = AudioSegment.from_mp3(file_path)
-            audio.export(wav_path, format="wav")
+#def safe_process(file_paths):
+ #   for file_path in file_paths:
+  #      try:
+   #         # Assuming file_paths contains MP3 files you want to convert
+    #        wav_path = file_path.replace(".mp3", ".wav")
+     #       audio = AudioSegment.from_mp3(file_path)
+      #      audio.export(wav_path, format="wav")
             # Further processing here
-        except Exception as e:
-            problematic_files.append(file_path)
-            print(f"Problem processing file {file_path}: {e}")
-            return None  # or appropriate failure indication
+       # except Exception as e:
+        #   problematic_files.append(file_path)
+         #   print(f"Problem processing file {file_path}: {e}")
+         #   return None  # or appropriate failure indication
 
-for item in common_voice:
-    safe_process(item["path"])
+#for item in common_voice:
+ #   safe_process(item["path"])
 
 # Now, filter out the problematic files from your dataset
-common_voice = [item for item in common_voice if item["file_path"] not in problematic_files]
+#common_voice = [item for item in common_voice if item["file_path"] not in problematic_files]
 
 
 def prepare_dataset_general(batch):
 
     # load and resample audio data from 48 to 16kHz
-    audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
+    audio = batch["audio"]
 
     # compute log-Mel input features from input audio array 
-    batch["input_features"] = feature_extractor(audio, sampling_rate=sr).input_features[0]
+    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
     
     # encode target text to label ids 
     batch["labels"] = tokenizer_general(batch["sentence"]).input_ids
@@ -128,11 +109,11 @@ common_voice = common_voice.map(prepare_dataset_general, remove_columns=common_v
 
 def prepare_dataset_swahili(batch):
     # load and resample audio data from 48 to 16kHz
-    audio, sr = librosa.load(batch["audio"]['path'], sr=16000)
-    
-    # Your existing preprocessing logic
+    audio = batch["audio"]
 
-    batch["input_features"] = feature_extractor(audio, sampling_rate=sr).input_features[0]
+    # compute log-Mel input features from input audio array 
+    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+    
     batch["labels"] = tokenizer_swahili(batch["sentence"]).input_ids
     return batch
 
