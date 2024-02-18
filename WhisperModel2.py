@@ -9,7 +9,7 @@ from datasets import load_dataset, DatasetDict
 common_voice = DatasetDict()
 
 common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="train", trust_remote_code=True)
-common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
+#common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
 common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
 
 common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender","path", "locale", "segment", "up_votes"])
@@ -104,7 +104,7 @@ def prepare_dataset_general(batch):
     batch["labels"] = tokenizer_general(batch["sentence"]).input_ids
     return batch
     
-common_voice = common_voice.map(prepare_dataset_general, remove_columns=common_voice.column_names["train"])
+common_voice_general = common_voice.map(prepare_dataset_general, remove_columns=common_voice.column_names["train"])
     
 
 def prepare_dataset_swahili(batch):
@@ -126,41 +126,69 @@ from typing import Any, Dict, List, Union
 
 #define a data collator
 @dataclass
-class DataCollatorSpeechSeq2SeqWithPadding:
-    processor: Any
+class DataCollatorSpeechSeq2SeqWithPaddingGeneral:
+    processor_general: Any
 
     def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
         input_features = [{"input_features": feature["input_features"]} for feature in features]
-        batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
+        batch = self.processor_general.feature_extractor_genreral.pad(input_features, return_tensors="pt")
 
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
         # pad the labels to max length
-        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+        labels_batch = self.processor_general.tokenizer_general.pad(label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
         labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
-        if (labels[:, 0] == self.processor.tokenizer.bos_token_id).all().cpu().item():
+        if (labels[:, 0] == self.processor_general.tokenizer_general.bos_token_id).all().cpu().item():
+            labels = labels[:, 1:]
+
+        batch["labels"] = labels
+
+        return batch
+    
+@dataclass
+class DataCollatorSpeechSeq2SeqWithPaddingSwahili:
+    processor_swahili: Any
+
+    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+        # split inputs and labels since they have to be of different lengths and need different padding methods
+        # first treat the audio inputs by simply returning torch tensors
+        input_features = [{"input_features": feature["input_features"]} for feature in features]
+        batch = self.processor_swahili.feature_extractor_swahili.pad(input_features, return_tensors="pt")
+
+        # get the tokenized label sequences
+        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        # pad the labels to max length
+        labels_batch = self.processor_swahili.tokenizer_swahili.pad(label_features, return_tensors="pt")
+
+        # replace padding with -100 to ignore loss correctly
+        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
+        if (labels[:, 0] == self.processor_swahili.tokenizer_swahili.bos_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
         batch["labels"] = labels
 
         return batch
 
-data_collator_general = DataCollatorSpeechSeq2SeqWithPadding(processor=processor_general)
-data_collator_swahili = DataCollatorSpeechSeq2SeqWithPadding(processor=processor_swahili)
+data_collator_general = DataCollatorSpeechSeq2SeqWithPaddingGeneral(processor=processor_general)
+data_collator_swahili = DataCollatorSpeechSeq2SeqWithPaddingSwahili(processor=processor_swahili)
+
 #evalution metricswer and wil
 import evaluate
 metric = evaluate.load("wer")
 from torchmetrics.functional.text import word_information_lost
 
 
-def compute_metrics(pred):
+def compute_metrics(pred, tokenizer):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
 
@@ -172,9 +200,8 @@ def compute_metrics(pred):
     label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
     wer = 100 * metric.compute(predictions=pred_str, references=label_str)
-    wil(pred_str, label_str)
 
-    return {"wer": wer, "wil": wil}
+    return {"wer": wer}
 
 #set checkpoints so that training progress is properly made
 from transformers import WhisperForConditionalGeneration
@@ -218,8 +245,8 @@ trainer_general = Seq2SeqTrainer(
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics,
-    tokenizer=processor.feature_extractor,
+    compute_metrics=compute_metrics(tokenizer=tokenizer_general),
+    tokenizer=processor_general.feature_extractor,
 )
 
 trainer_general.train()
@@ -231,7 +258,7 @@ trainer_swahili = Seq2SeqTrainer(
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
-    compute_metrics=compute_metrics,
-    tokenizer=processor.feature_extractor,
+    compute_metrics=compute_metrics(tokenizer=tokenizer_swahili),
+    tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
