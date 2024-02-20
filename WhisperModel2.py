@@ -1,5 +1,5 @@
-from huggingface_hub import notebook_login
-notebook_login()
+from huggingface_hub import login, logout
+login()
 
 import datasets
 import librosa
@@ -28,8 +28,6 @@ processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", lan
 #downsample to match whisper sampling rate
 from datasets import Audio
 common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
-half_index = len(common_voice) // 2
-dataset_second_half = common_voice.select(range(half_index, len(common_voice)))
 
 from pydub import AudioSegment
 import librosa
@@ -263,3 +261,5 @@ trainer_swahili = Seq2SeqTrainer(
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
+
+logout()
