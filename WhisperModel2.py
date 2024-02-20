@@ -9,20 +9,19 @@ from datasets import load_dataset, DatasetDict
 common_voice = DatasetDict()
 
 common_voice["train"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="train", trust_remote_code=True)
-#common_voice["validation"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
-common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="test", trust_remote_code=True)
+common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg", split="validation", trust_remote_code=True)
 
-common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender","path", "locale", "segment", "up_votes"])
+common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender","path","variant" ,"locale", "segment", "up_votes"])
 
 from transformers import WhisperFeatureExtractor
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 
 from transformers import WhisperTokenizer
-tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", task="transcribe")
+tokenizer_general = WhisperTokenizer.from_pretrained("openai/whisper-small", language="English", task="transcribe")
 tokenizer_swahili = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
 
 from transformers import WhisperProcessor
-processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", task="transcribe")
+processor_general = WhisperProcessor.from_pretrained("openai/whisper-small", language="English", task="transcribe")
 processor_swahili = WhisperProcessor.from_pretrained("openai/whisper-small", language="Swahili", task="transcribe")
 
 #downsample to match whisper sampling rate
@@ -208,6 +207,7 @@ from transformers import WhisperForConditionalGeneration
 model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
 model.config.forced_decoder_ids = None
 model.config.suppress_tokens = []
+model.generation_config.language ='sw'
 
 #define training arguments
 from transformers import Seq2SeqTrainingArguments
