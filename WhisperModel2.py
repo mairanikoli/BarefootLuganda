@@ -14,6 +14,15 @@ common_voice["test"] = load_dataset("mozilla-foundation/common_voice_16_0", "lg"
 
 common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender","path", "locale", "segment", "up_votes"])
 
+def exclude_specific_index(example, indices_to_exclude):
+    # This function will return False for examples that should be excluded
+    return not example['_index'] in indices_to_exclude
+
+# Define the index or indices you want to exclude
+indices_to_exclude = [21057]
+
+common_voice["train"] = common_voice["train"].filter(lambda example: exclude_specific_index(example, indices_to_exclude), with_indices=True)
+
 from transformers import WhisperFeatureExtractor
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 
