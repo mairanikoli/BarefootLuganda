@@ -1,0 +1,12 @@
+huggingface_hub
+kaleido
+cohere
+openai
+tiktoken
+datasets>=2.6.1
+git+https://github.com/huggingface/transformers
+librosa
+jiwer
+gradio
+accelerate
+transformers[torch]
