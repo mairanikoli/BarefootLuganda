@@ -11,3 +11,7 @@ gradio
 accelerate
 transformers[torch]
 torchmetrics
+chardet
+torchaudio
+tochvision
+cudatoolkit==11
