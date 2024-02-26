@@ -10,4 +10,3 @@ jiwer
 gradio
 accelerate
 transformers[torch]
-evaluate>=0.30
