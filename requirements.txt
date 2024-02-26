@@ -10,3 +10,4 @@ jiwer
 gradio
 accelerate
 transformers[torch]
+torchmetrics
