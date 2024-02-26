@@ -5,8 +5,8 @@ tiktoken
 datasets>=2.6.1
 git+https://github.com/huggingface/transformers
 librosa
-evaluate>=0.30
 jiwer
 gradio
 accelerate
 transformers[torch]
+evaluate>=0.30
