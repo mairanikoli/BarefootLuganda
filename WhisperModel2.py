@@ -1,4 +1,4 @@
-#from huggingface_hub import login, logout
+from huggingface_hub import login, logout
 import librosa
 import numpy as np
 import os
@@ -7,7 +7,7 @@ import torch
 
 from datasets import load_dataset, DatasetDict
 
-HfFolder.save_token("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")
+login("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")
 
 
 common_voice = DatasetDict()
