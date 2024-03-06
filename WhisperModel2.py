@@ -80,14 +80,14 @@ class DataCollatorSpeechSeq2SeqWithPaddingGeneral:
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
         # pad the labels to max length
-        labels_batch = self.processor_general.tokenizer_general.pad(label_features, return_tensors="pt")
+        labels_batch = self.processor_general.tokenizer.pad(label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
         labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
-        if (labels[:, 0] == self.processor_general.tokenizer_general.bos_token_id).all().cpu().item():
+        if (labels[:, 0] == self.processor_general.tokenizer.bos_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
         batch["labels"] = labels
@@ -107,14 +107,14 @@ class DataCollatorSpeechSeq2SeqWithPaddingSwahili:
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
         # pad the labels to max length
-        labels_batch = self.processor_swahili.tokenizer_swahili.pad(label_features, return_tensors="pt")
+        labels_batch = self.processor_swahili.tokenizer.pad(label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
         labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
-        if (labels[:, 0] == self.processor_swahili.tokenizer_swahili.bos_token_id).all().cpu().item():
+        if (labels[:, 0] == self.processor_swahili.tokenizer.bos_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
         batch["labels"] = labels
