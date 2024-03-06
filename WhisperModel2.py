@@ -188,7 +188,7 @@ trainer_general = Seq2SeqTrainer(
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics
+    compute_metrics=compute_metrics,
 )
 
 trainer_general.train()
@@ -201,7 +201,6 @@ trainer_swahili = Seq2SeqTrainer(
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
     compute_metrics=compute_metrics,
-    tokenizer=processor_swahili.processor_swahili.fe,
 )
 trainer_swahili.train()
 
