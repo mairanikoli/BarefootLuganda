@@ -145,21 +145,35 @@ metric = evaluate.load("wer")
 from torchmetrics.functional.text import word_information_lost
 
 
-def compute_metrics(pred):
+def compute_metrics_general(pred):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
 
     # replace -100 with the pad_token_id
-    label_ids[label_ids == -100] = tokenizer.pad_token_id
+    label_ids[label_ids == -100] = tokenizer_general.pad_token_id
 
     # we do not want to group tokens when computing the metrics
-    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-    label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+    pred_str = tokenizer_general.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = tokenizer_general.batch_decode(label_ids, skip_special_tokens=True)
 
     wer = 100 * metric.compute(predictions=pred_str, references=label_str)
 
     return {"wer": wer}
 
+def compute_metrics_swahili(pred):
+    pred_ids = pred.predictions
+    label_ids = pred.label_ids
+
+    # replace -100 with the pad_token_id
+    label_ids[label_ids == -100] = tokenizer_swahili.pad_token_id
+
+    # we do not want to group tokens when computing the metrics
+    pred_str = tokenizer_swahili.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = tokenizer_swahili.batch_decode(label_ids, skip_special_tokens=True)
+
+    wer = 100 * metric.compute(predictions=pred_str, references=label_str)
+
+    return {"wer": wer}
 #set checkpoints so that training progress is properly made
 from transformers import WhisperForConditionalGeneration
 
@@ -203,7 +217,7 @@ trainer_general = Seq2SeqTrainer(
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics_general,
     tokenizer=processor_general.feature_extractor,
 )
 
@@ -239,7 +253,7 @@ trainer_swahili = Seq2SeqTrainer(
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics_swahili,
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
