@@ -75,7 +75,7 @@ class DataCollatorSpeechSeq2SeqWithPaddingGeneral:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
         input_features = [{"input_features": feature["input_features"]} for feature in features]
-        batch = self.processor_general.feature_extractor_genreral.pad(input_features, return_tensors="pt")
+        batch = self.processor_general.feature_extractor.pad(input_features, return_tensors="pt")
 
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
@@ -102,7 +102,7 @@ class DataCollatorSpeechSeq2SeqWithPaddingSwahili:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
         input_features = [{"input_features": feature["input_features"]} for feature in features]
-        batch = self.processor_swahili.feature_extractor_swahili.pad(input_features, return_tensors="pt")
+        batch = self.processor_swahili.feature_extractor.pad(input_features, return_tensors="pt")
 
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
@@ -189,6 +189,7 @@ trainer_general = Seq2SeqTrainer(
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
     compute_metrics=compute_metrics,
+    tokenizer=processor_general.feature_extractor,
 )
 
 trainer_general.train()
@@ -201,6 +202,7 @@ trainer_swahili = Seq2SeqTrainer(
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
     compute_metrics=compute_metrics,
+    tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
 
