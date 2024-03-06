@@ -181,14 +181,14 @@ training_args = Seq2SeqTrainingArguments(
 
 from transformers import Seq2SeqTrainer
 
-#train model without specific language
+#train model english language
 trainer_general = Seq2SeqTrainer(
     args=training_args,
     model=model,
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics(tokenizer=tokenizer_general),
+    compute_metrics=compute_metrics
     tokenizer=processor_general.feature_extractor,
 )
 
@@ -201,7 +201,7 @@ trainer_swahili = Seq2SeqTrainer(
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
-    compute_metrics=compute_metrics(tokenizer=tokenizer_swahili),
+    compute_metrics=compute_metrics,
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
