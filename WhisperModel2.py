@@ -4,8 +4,23 @@ import numpy as np
 import os
 import datasets
 import torch
-
 from datasets import load_dataset, DatasetDict
+
+import tensorflow as tf
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    #for allocation 80% of memory
+    memory_limit = 11264 * 0.8
+    # Restrict TensorFlow to only allocate a fraction of the GPU memory
+    tf.config.experimental.set_memory_growth(gpus[0], True)
+    tf.config.experimental.set_virtual_device_configuration(
+        gpus[0],
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=memory_limit)]
+    )
+  except RuntimeError as e:
+    print(e)
 
 login("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")
 
