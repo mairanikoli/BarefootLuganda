@@ -145,7 +145,7 @@ metric = evaluate.load("wer")
 from torchmetrics.functional.text import word_information_lost
 
 
-def compute_metrics(pred, tokenizer):
+def compute_metrics(pred):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
 
@@ -203,7 +203,7 @@ trainer_general = Seq2SeqTrainer(
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics(tokenizer=tokenizer_general),
+    compute_metrics=compute_metrics,
     tokenizer=processor_general.feature_extractor,
 )
 
@@ -239,7 +239,7 @@ trainer_swahili = Seq2SeqTrainer(
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
-    compute_metrics=compute_metrics(tokenizer=tokenizer_swahili),
+    compute_metrics=compute_metrics,
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
