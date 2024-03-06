@@ -173,8 +173,8 @@ from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
     output_dir="english",  # change to a repo name of your choice
-    per_device_train_batch_size=16,
-    gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
+    per_device_train_batch_size=8,
+    gradient_accumulation_steps=2,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
     warmup_steps=500,
     max_steps=4000,
@@ -203,7 +203,7 @@ trainer_general = Seq2SeqTrainer(
     train_dataset=common_voice_general["train"],
     eval_dataset=common_voice_general["test"],
     data_collator=data_collator_general,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics(tokenizer=tokenizer_general),
     tokenizer=processor_general.feature_extractor,
 )
 
@@ -211,8 +211,8 @@ trainer_general.train()
 
 training_args_swahili = Seq2SeqTrainingArguments(
     output_dir="swahili",  # change to a repo name of your choice
-    per_device_train_batch_size=16,
-    gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
+    per_device_train_batch_size=8,
+    gradient_accumulation_steps=2,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
     warmup_steps=500,
     max_steps=4000,
@@ -239,7 +239,7 @@ trainer_swahili = Seq2SeqTrainer(
     train_dataset=common_voice_swahili["train"],
     eval_dataset=common_voice_swahili["test"],
     data_collator=data_collator_swahili,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics(tokenizer=tokenizer_swahili),
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
