@@ -223,6 +223,18 @@ trainer_general = Seq2SeqTrainer(
 
 trainer_general.train()
 
+kwargs_general = {
+    "dataset_tags": "mozilla-foundation/common_voice_15_0",
+    "dataset": "Common Voice 15.0",  # a 'pretty' name for the training dataset
+    "dataset_args": "config: lu, split: test",
+    "language": "en",
+    "model_name": "Whisper Small Luganda",  # a 'pretty' name for your model
+    "finetuned_from": "openai/whisper-small",
+    "tasks": "automatic-speech-recognition",
+}
+
+trainer_general.push_to_hub(**kwargs_general)
+
 training_args_swahili = Seq2SeqTrainingArguments(
     output_dir="swahili",  # change to a repo name of your choice
     per_device_train_batch_size=8,
@@ -257,5 +269,16 @@ trainer_swahili = Seq2SeqTrainer(
     tokenizer=processor_swahili.feature_extractor,
 )
 trainer_swahili.train()
+
+kwargs_swahili = {
+    "dataset_tags": "mozilla-foundation/common_voice_15_0",
+    "dataset": "Common Voice 15.0",  # a 'pretty' name for the training dataset
+    "dataset_args": "config: lu, split: test",
+    "language": "sw",
+    "model_name": "Whisper Small Luganda",  # a 'pretty' name for your model
+    "finetuned_from": "openai/whisper-small",
+    "tasks": "automatic-speech-recognition",
+}
+trainer_swahili.push_to_hub(**kwargs_swahili)
 
 logout()
